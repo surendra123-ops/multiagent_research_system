@@ -13,7 +13,7 @@ from agents import (
 # ---------------------------------------------------
 
 st.set_page_config(
-    page_title="ResearchMind AI",
+    page_title="ResearchMind",
     page_icon="🧠",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -42,15 +42,15 @@ html, body, [class*="css"] {
 footer {visibility: hidden;}
 header {visibility: hidden;}
 
-/* Main container */
+/* Main Layout */
 .block-container {
     padding-top: 2rem;
     padding-bottom: 2rem;
 }
 
-/* Hero */
+/* Hero Section */
 .hero {
-    padding: 2rem 0;
+    padding: 2rem 0 1rem 0;
 }
 
 .hero-title {
@@ -66,29 +66,17 @@ header {visibility: hidden;}
     -webkit-text-fill-color: transparent;
 }
 
-.hero-sub {
-    color: #9aa4b2;
-    font-size: 1.1rem;
-}
-
-/* Cards */
-.card {
-    background: #111827;
-    padding: 1.2rem;
-    border-radius: 18px;
-    border: 1px solid #1f2937;
-    margin-bottom: 1rem;
-}
-
-/* Status cards */
+/* Sidebar Cards */
 .status-card {
     background: #121826;
     padding: 1rem;
     border-radius: 16px;
     border: 1px solid #202939;
+    margin-bottom: 1rem;
+    color: white;
 }
 
-/* Metric */
+/* Metric Cards */
 .metric {
     background: #111827;
     padding: 1rem;
@@ -105,7 +93,7 @@ header {visibility: hidden;}
     color: white;
     border: none;
     font-weight: 700;
-    padding: 0.8rem;
+    padding: 0.9rem;
     font-size: 1rem;
 }
 
@@ -117,12 +105,13 @@ header {visibility: hidden;}
     border: 1px solid #2a3441 !important;
 }
 
-/* Report */
+/* Report Box */
 .report-box {
     background: #111827;
     padding: 2rem;
     border-radius: 18px;
     border: 1px solid #1f2937;
+    color: white;
 }
 
 /* Footer */
@@ -133,6 +122,27 @@ header {visibility: hidden;}
     font-size: 0.9rem;
 }
 
+.agent-heading {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+}
+
+.agent-desc {
+    color: #9aa4b2;
+    font-size: 0.85rem;
+}
+
+.agent-status {
+    margin-top: 0.8rem;
+    font-weight: 600;
+}
+
+/* Progress */
+.stProgress > div > div > div {
+    background-color: #ff7b1a;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -140,17 +150,20 @@ header {visibility: hidden;}
 # SESSION STATE
 # ---------------------------------------------------
 
-if "report" not in st.session_state:
-    st.session_state.report = ""
+default_states = {
+    "report": "",
+    "critic": "",
+    "search": "",
+    "reader": "",
+    "search_status": "🟢 Ready",
+    "reader_status": "🟢 Ready",
+    "writer_status": "🟢 Ready",
+    "critic_status": "🟢 Ready"
+}
 
-if "critic" not in st.session_state:
-    st.session_state.critic = ""
-
-if "search" not in st.session_state:
-    st.session_state.search = ""
-
-if "reader" not in st.session_state:
-    st.session_state.reader = ""
+for key, value in default_states.items():
+    if key not in st.session_state:
+        st.session_state[key] = value
 
 # ---------------------------------------------------
 # SIDEBAR
@@ -162,32 +175,55 @@ with st.sidebar:
 
     st.markdown("---")
 
-    st.markdown("### System Status")
+    st.markdown("## 🤖 AI Agent Status")
 
-    st.success("Groq API Connected")
+    st.markdown(f"""
+    <div class="status-card">
+        <div class="agent-heading">🔍 Search Agent</div>
+        <div class="agent-desc">
+            Searches the web for relevant and updated information.
+        </div>
+        <div class="agent-status">
+            Status: {st.session_state.search_status}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-    st.markdown("---")
+    st.markdown(f"""
+    <div class="status-card">
+        <div class="agent-heading">📄 Reader Agent</div>
+        <div class="agent-desc">
+            Extracts and analyzes detailed content from sources.
+        </div>
+        <div class="agent-status">
+            Status: {st.session_state.reader_status}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-    st.markdown("### AI Agents")
+    st.markdown(f"""
+    <div class="status-card">
+        <div class="agent-heading">✍️ Writer Agent</div>
+        <div class="agent-desc">
+            Generates a structured professional report.
+        </div>
+        <div class="agent-status">
+            Status: {st.session_state.writer_status}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-    st.markdown("""
-    ✅ Search Agent  
-    ✅ Reader Agent  
-    ✅ Writer Agent  
-    ✅ Critic Agent
-    """)
-
-    st.markdown("---")
-
-    st.markdown("### Features")
-
-    st.markdown("""
-    - Web Search
-    - URL Scraping
-    - AI Report Generation
-    - AI Critic Review
-    - Markdown Export
-    """)
+    st.markdown(f"""
+    <div class="status-card">
+        <div class="agent-heading">🧐 Critic Agent</div>
+        <div class="agent-desc">
+            Reviews and evaluates the final report quality.
+        </div>
+        <div class="agent-status">
+            Status: {st.session_state.critic_status}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
 # ---------------------------------------------------
 # HERO SECTION
@@ -198,18 +234,14 @@ st.markdown("""
     <div class="hero-title">
         Research<span class="hero-gradient">Mind</span>
     </div>
-
-    <div class="hero-sub">
-        Multi-Agent AI Research System powered by LangChain + Groq
-    </div>
 </div>
 """, unsafe_allow_html=True)
 
 # ---------------------------------------------------
-# TOP METRICS
+# METRICS
 # ---------------------------------------------------
 
-col1, col2, col3, col4 = st.columns(4)
+col1, col2, col3 = st.columns(3)
 
 with col1:
     st.markdown("""
@@ -222,24 +254,16 @@ with col1:
 with col2:
     st.markdown("""
     <div class="metric">
-        <h2>Groq</h2>
-        <p>LLM Engine</p>
+        <h2>Live</h2>
+        <p>Research Pipeline</p>
     </div>
     """, unsafe_allow_html=True)
 
 with col3:
     st.markdown("""
     <div class="metric">
-        <h2>Live</h2>
-        <p>Web Search</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-with col4:
-    st.markdown("""
-    <div class="metric">
-        <h2>AI</h2>
-        <p>Research Reports</p>
+        <h2>Smart</h2>
+        <p>AI Reports</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -251,20 +275,26 @@ st.markdown("<br>", unsafe_allow_html=True)
 
 topic = st.text_input(
     "Research Topic",
-    placeholder="Enter a topic like: Future of AI Agents in 2026"
+    placeholder="Example: Future of AI Agents in 2026"
 )
 
 run = st.button("🚀 Generate Research Report")
 
 # ---------------------------------------------------
-# PIPELINE
+# RUN PIPELINE
 # ---------------------------------------------------
 
 if run:
 
     if not topic.strip():
-        st.warning("Please enter a topic.")
+        st.warning("Please enter a research topic.")
         st.stop()
+
+    # Reset states
+    st.session_state.search_status = "🟡 Running"
+    st.session_state.reader_status = "⚪ Waiting"
+    st.session_state.writer_status = "⚪ Waiting"
+    st.session_state.critic_status = "⚪ Waiting"
 
     progress = st.progress(0)
 
@@ -272,9 +302,9 @@ if run:
 
     try:
 
-        # -----------------------------------------
+        # ---------------------------------------------------
         # SEARCH AGENT
-        # -----------------------------------------
+        # ---------------------------------------------------
 
         status.info("🔍 Search Agent is gathering information...")
 
@@ -290,13 +320,16 @@ if run:
 
         st.session_state.search = search_output
 
+        st.session_state.search_status = "✅ Completed"
+        st.session_state.reader_status = "🟡 Running"
+
         progress.progress(25)
 
-        # -----------------------------------------
+        # ---------------------------------------------------
         # READER AGENT
-        # -----------------------------------------
+        # ---------------------------------------------------
 
-        status.info("📄 Reader Agent is scraping content...")
+        status.info("📄 Reader Agent is extracting deep insights...")
 
         reader_agent = build_reader_agent()
 
@@ -312,11 +345,14 @@ if run:
 
         st.session_state.reader = reader_output
 
+        st.session_state.reader_status = "✅ Completed"
+        st.session_state.writer_status = "🟡 Running"
+
         progress.progress(50)
 
-        # -----------------------------------------
-        # WRITER
-        # -----------------------------------------
+        # ---------------------------------------------------
+        # WRITER AGENT
+        # ---------------------------------------------------
 
         status.info("✍️ Writer Agent is generating report...")
 
@@ -335,13 +371,16 @@ if run:
 
         st.session_state.report = report
 
+        st.session_state.writer_status = "✅ Completed"
+        st.session_state.critic_status = "🟡 Running"
+
         progress.progress(75)
 
-        # -----------------------------------------
-        # CRITIC
-        # -----------------------------------------
+        # ---------------------------------------------------
+        # CRITIC AGENT
+        # ---------------------------------------------------
 
-        status.info("🧐 Critic Agent is reviewing report...")
+        status.info("🧐 Critic Agent is reviewing report quality...")
 
         critic = critic_chain.invoke({
             "report": report
@@ -349,12 +388,20 @@ if run:
 
         st.session_state.critic = critic
 
+        st.session_state.critic_status = "✅ Completed"
+
         progress.progress(100)
 
-        status.success("✅ Research Pipeline Completed")
+        status.success("✅ Research Pipeline Completed Successfully")
 
     except Exception as e:
+
         st.error(f"Error: {str(e)}")
+
+        st.session_state.search_status = "❌ Failed"
+        st.session_state.reader_status = "❌ Failed"
+        st.session_state.writer_status = "❌ Failed"
+        st.session_state.critic_status = "❌ Failed"
 
 # ---------------------------------------------------
 # RESULTS
@@ -386,6 +433,8 @@ if st.session_state.report:
 
     st.code(st.session_state.critic)
 
+    st.markdown("<br>", unsafe_allow_html=True)
+
     with st.expander("🔍 Search Agent Output"):
         st.write(st.session_state.search)
 
@@ -398,8 +447,8 @@ if st.session_state.report:
 
 st.markdown(f"""
 <div class="footer">
-Built with LangChain • Groq • Streamlit • Multi-Agent AI System
+Built for Intelligent Multi-Agent Research Workflows
 <br><br>
-{datetime.now().year} © ResearchMind
+© {datetime.now().year} ResearchMind
 </div>
 """, unsafe_allow_html=True)
